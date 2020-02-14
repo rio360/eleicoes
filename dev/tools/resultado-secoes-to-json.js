@@ -12,8 +12,8 @@ const formatNumber = number => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const turnos = {
-	"1": { zonas : { } },
-	"2": { zonas : { } },
+	"1": { zonas: { }, secoes: { } },
+	"2": { zonas: { }, secoes: { } },
 }
 
 const cargos = [
@@ -43,6 +43,7 @@ rl.on("line", line => {
 
 	const turno = columns[3]
 	const zona = columns[9]
+	const secao = columns[10]
 	const cargo = columns[12].toLowerCase()
 	const votos = parseInt(columns[14])
 	let candidato = columns[13]
@@ -67,25 +68,48 @@ rl.on("line", line => {
 		}
 	}
 
+	if (!turnos[turno].secoes[secao]) {
+		turnos[turno].secoes[secao] = {
+			"prefeito": { },
+			"vereador": { },
+		}
+	}
+
 	// Cria candidato no objeto, se ainda não existir
 	if (!turnos[turno].zonas[zona][cargo][candidato]) {
 		turnos[turno].zonas[zona][cargo][candidato] = 0
 	}
 
+	if (!turnos[turno].secoes[secao][cargo][candidato]) {
+		turnos[turno].secoes[secao][cargo][candidato] = 0
+	}
+
 	// Registra os votos do candidato
 	turnos[turno].zonas[zona][cargo][candidato] += votos;
+	turnos[turno].secoes[secao][cargo][candidato] += votos;
 }).on("close", () => {
 	// Salva JSONs por cargo e turno
 	for (const turno in turnos) {
 		cargos.forEach(cargo => {
-			let data = { }
+			// Zonas
+			let zonas = { }
 
 			for (const zona in turnos[turno].zonas) {
-				data[zona] = turnos[turno].zonas[zona][cargo]
+				zonas[zona] = turnos[turno].zonas[zona][cargo]
 			}
 
-			const destination = `./../../source/data/${ano}/${cargo}-por-zona-${turno}-turno.json`
-			fs.outputJsonSync(destination, data, { spaces: "\t" })
+			const zonasDestination = `./../../source/data/${ano}/${cargo}-por-zona-${turno}-turno.json`
+			fs.outputJsonSync(zonasDestination, zonas, { spaces: "\t" })
+
+			// Seções
+			let secoes = { }
+
+			for (const secao in turnos[turno].secoes) {
+				secoes[secao] = turnos[turno].secoes[secao][cargo]
+			}
+
+			const secoesDestination = `./../../source/data/${ano}/${cargo}-por-secao-${turno}-turno.json`
+			fs.outputJsonSync(secoesDestination, secoes, { spaces: "\t" })
 		})
 	}
 
