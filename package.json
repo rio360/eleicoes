@@ -1,0 +1,25 @@
+{
+  "name": "eleicoes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rio360/eleicoes.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Arthur Jacob",
+    "email": "jacob@emitremmus.com",
+    "url": "https://emitremmus.com"
+  },
+  "license": "CC-BY-NC-SA-4.0",
+  "bugs": {
+    "url": "https://github.com/rio360/eleicoes/issues"
+  },
+  "homepage": "https://github.com/rio360/eleicoes#readme",
+  "dependencies": {
+    "fs-extra": "^8.1.0",
+    "moment": "^2.24.0"
+  }
+}
