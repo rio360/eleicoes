@@ -104,4 +104,4 @@ dist
 .tern-port
 
 # Large raw files
-source/data/raw
+source/data/*/raw

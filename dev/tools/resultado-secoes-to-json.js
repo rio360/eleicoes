@@ -3,9 +3,9 @@ const readline = require("readline")
 const moment = require("moment")
 
 const ano = "2016"
-const source = "./../../source/data/raw/votacao_secao_2016_RJ.txt"
+const source = "./../../source/data/2016/raw/votacao_secao_2016_RJ.txt"
 
-const formatNumber = (number) => {
+const formatNumber = number => {
 	return new Intl.NumberFormat("pt-BR").format(number)
 }
 
