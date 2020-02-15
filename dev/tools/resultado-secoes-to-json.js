@@ -9,6 +9,12 @@ const formatNumber = number => {
 	return new Intl.NumberFormat("pt-BR").format(number)
 }
 
+const logStatus = message => {
+	process.stdout.clearLine()
+	process.stdout.cursorTo(0)
+	process.stdout.write(message)
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const turnos = {
@@ -87,6 +93,11 @@ rl.on("line", line => {
 	// Registra os votos do candidato
 	turnos[turno].zonas[zona][cargo][candidato] += votos;
 	turnos[turno].secoes[secao][cargo][candidato] += votos;
+
+	// Loga status
+	if (lineCount % 50000 === 0) {
+		logStatus(formatNumber(lineCount) + " linhas processadas...")
+	}
 }).on("close", () => {
 	// Salva JSONs por cargo e turno
 	for (const turno in turnos) {
@@ -115,7 +126,10 @@ rl.on("line", line => {
 
 	const endDate = moment()
 	const timing = endDate.diff(startDate, "seconds", true);
-	console.log(`Processadas ${formatNumber(lineCount)} linhas em ${formatNumber(timing)}s`)
+
+	process.stdout.clearLine()
+	process.stdout.cursorTo(0)
+	console.log(`${formatNumber(lineCount)} linhas processadas em ${formatNumber(timing)}s`)
 });
 
 // [
