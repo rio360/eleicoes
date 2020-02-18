@@ -4,6 +4,7 @@ const moment = require("moment")
 
 const ano = "2016"
 const source = "./../../source/data/2016/raw/votacao_secao_2016_RJ.txt"
+// const source = "./../../source/data/2016/raw/sample.txt"
 
 const formatNumber = number => {
 	return new Intl.NumberFormat("pt-BR").format(number)
@@ -15,17 +16,21 @@ const logStatus = message => {
 	process.stdout.write(message)
 }
 
+const startDate = moment()
+let lineCount = 0
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const agrupamentos = [ "secao", "bairro" ]
+
 const turnos = {
-	"1": { zonas: { }, secoes: { } },
-	"2": { zonas: { }, secoes: { } },
+	"1": { "prefeito": { }, "vereador": { } },
+	"2": { "prefeito": { }, "vereador": { } },
 }
 
-const cargos = [
-	"prefeito",
-	"vereador",
-]
+const cargos = [ "prefeito", "vereador" ]
+
+const secaoToBairro = fs.readJsonSync("./../../source/data/2016/secoes.json")
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,8 +39,13 @@ const rl = readline.createInterface({
 	crlfDelay: Infinity,
 })
 
-let lineCount = 0
-const startDate = moment()
+agrupamentos.forEach(criterio => {
+	cargos.forEach(cargo => {
+		for (const turno in turnos) {
+			turnos[turno][cargo][criterio] = { }
+		}
+	})
+})
 
 rl.on("line", line => {
 	const columns = line.split(";").map(column => column.replace(/"/g, ""))
@@ -47,12 +57,17 @@ rl.on("line", line => {
 	// Só estamos interessados no município do Rio de Janeiro!
 	if (columns[8] !== "RIO DE JANEIRO") return false
 
-	const turno = columns[3]
-	const zona = columns[9]
-	const secao = columns[10]
+	const turno = columns[3].toString()
+	const secao = columns[9].toString() + "-" + columns[10].toString()
+	const bairro = secaoToBairro[secao]
 	const cargo = columns[12].toLowerCase()
 	const votos = parseInt(columns[14])
 	let candidato = columns[13]
+
+	const criterios = {
+		secao: secao,
+		bairro: bairro,
+	}
 
 	switch (candidato) {
 		case "95":
@@ -66,33 +81,22 @@ rl.on("line", line => {
 			break
 	}
 
-	// Cria zona no objeto, se ainda não existir
-	if (!turnos[turno].zonas[zona]) {
-		turnos[turno].zonas[zona] = {
-			"prefeito": { },
-			"vereador": { },
+	agrupamentos.forEach(criterio => {
+		// Cria zona no objeto, se ainda não existir
+		cargos.forEach(cargo => {
+			if (!turnos[turno][cargo][criterio][criterios[criterio]]) {
+				turnos[turno][cargo][criterio][criterios[criterio]] = { }
+			}
+		})
+
+		// Cria candidato no objeto, se ainda não existir
+		if (!turnos[turno][cargo][criterio][criterios[criterio]][candidato]) {
+			turnos[turno][cargo][criterio][criterios[criterio]][candidato] = 0
 		}
-	}
 
-	if (!turnos[turno].secoes[secao]) {
-		turnos[turno].secoes[secao] = {
-			"prefeito": { },
-			"vereador": { },
-		}
-	}
-
-	// Cria candidato no objeto, se ainda não existir
-	if (!turnos[turno].zonas[zona][cargo][candidato]) {
-		turnos[turno].zonas[zona][cargo][candidato] = 0
-	}
-
-	if (!turnos[turno].secoes[secao][cargo][candidato]) {
-		turnos[turno].secoes[secao][cargo][candidato] = 0
-	}
-
-	// Registra os votos do candidato
-	turnos[turno].zonas[zona][cargo][candidato] += votos;
-	turnos[turno].secoes[secao][cargo][candidato] += votos;
+		// Registra os votos do candidato
+		turnos[turno][cargo][criterio][criterios[criterio]][candidato] += votos;
+	})
 
 	// Loga status
 	if (lineCount % 50000 === 0) {
@@ -100,29 +104,17 @@ rl.on("line", line => {
 	}
 }).on("close", () => {
 	// Salva JSONs por cargo e turno
-	for (const turno in turnos) {
-		cargos.forEach(cargo => {
-			// Zonas
-			let zonas = { }
+	agrupamentos.forEach(criterio => {
+		for (const turno in turnos) {
+			cargos.forEach(cargo => {
+				// Não tem votação para verador no segundo turno!
+				if (turno === "2" && cargo === "vereador") return false;
 
-			for (const zona in turnos[turno].zonas) {
-				zonas[zona] = turnos[turno].zonas[zona][cargo]
-			}
-
-			const zonasDestination = `./../../source/data/${ano}/${cargo}-por-zona-${turno}-turno.json`
-			fs.outputJsonSync(zonasDestination, zonas, { spaces: "\t" })
-
-			// Seções
-			let secoes = { }
-
-			for (const secao in turnos[turno].secoes) {
-				secoes[secao] = turnos[turno].secoes[secao][cargo]
-			}
-
-			const secoesDestination = `./../../source/data/${ano}/${cargo}-por-secao-${turno}-turno.json`
-			fs.outputJsonSync(secoesDestination, secoes, { spaces: "\t" })
-		})
-	}
+				const destination = `./../../source/data/${ano}/${cargo}-por-${criterio}-${turno}-turno.json`
+				fs.outputJsonSync(destination, turnos[turno][cargo][criterio], { spaces: "\t" })
+			})
+		}
+	})
 
 	const endDate = moment()
 	const timing = endDate.diff(startDate, "seconds", true);

@@ -9,7 +9,7 @@ const workbook = xlsx.readFile(source)
 const sheet = workbook.Sheets["secoes_completo"]
 const secoes = xlsx.utils.sheet_to_json(sheet)
 
-let bairros = { }
+let secaoToBairro = { }
 
 secoes.forEach(secao => {
 	// Só estamos interessados no município do Rio de Janeiro!
@@ -19,12 +19,11 @@ secoes.forEach(secao => {
 	// e adiciona na lista de bairros, se ainda não existir
 	const endereco = secao["ENDERECO LOCAL ATUAL"]
 	const bairro = endereco.substring(endereco.lastIndexOf(", ") + 2)
-	if (!bairros[bairro]) bairros[bairro] = [ ]
+	const id = secao["ZONA ANTERIOR"] + "-" + secao["SECAO ANTERIOR"]
 
-	if (!bairros[bairro].includes(secao["SECAO ANTERIOR"])) {
-		bairros[bairro].push(secao["SECAO ANTERIOR"])
+	if (!secaoToBairro[id]) {
+		secaoToBairro[id] = bairro;
 	}
 })
 
-const destination = `./../../source/data/2016/secoes-por-bairro.json`
-fs.outputJsonSync(destination, bairros, { spaces: "\t" })
+fs.outputJsonSync("./../../source/data/2016/secoes.json", secaoToBairro, { spaces: "\t" })
