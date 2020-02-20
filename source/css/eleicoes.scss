@@ -1,0 +1,50 @@
+html,
+body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+}
+
+.map-container {
+	$sidebar-width: 400px;
+
+	width: 100%;
+	height: 100%;
+	position: relative;
+
+	#map {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		z-index: 1;
+
+		.mapboxgl-ctrl-top-left,
+		.mapboxgl-ctrl-bottom-left {
+			left: $sidebar-width;
+		}
+
+		.mapboxgl-ctrl.mapboxgl-ctrl-attrib {
+			border-top-left-radius: 6px;
+			background-color: rgba(#eee, 0.666);
+			backdrop-filter: blur(10px);
+		}
+	}
+
+	.sidebar {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: $sidebar-width;
+		background-color: rgba(#eee, 0.85);
+		z-index: 2;
+		backdrop-filter: blur(10px);
+		box-shadow: 2px 0 9px rgba(#000, 0.4);
+
+		// display: none;
+	}
+}
