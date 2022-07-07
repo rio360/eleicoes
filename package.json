@@ -22,7 +22,7 @@
   "homepage": "https://github.com/rio360/eleicoes#readme",
   "dependencies": {
     "fs-extra": "^8.1.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "xlsx": "^0.15.5"
   },
   "devDependencies": {
